@@ -42,27 +42,57 @@ func TestJoin(t *testing.T) {
 	assert.Equal(t, GameStarted, g.state)
 }
 
-func TestPlay(t *testing.T) {
+func TestPlayValidations(t *testing.T) {
 	var (
 		p1 = NewHumanPlayer(XTeam)
 		p2 = NewHumanPlayer(OTeam)
 		g  = NewGame(p1)
 	)
 
-	err := g.Play(p1, Statement0)
+	winner, err := g.Play(p1, Statement0)
 	assert.ErrorIs(t, err, ErrWaitingPlayerJoin)
+	assert.Nil(t, winner)
 
 	g.Join(p2)
 
-	err = g.Play(p1, Statement0)
+	winner, err = g.Play(p1, Statement0)
 	assert.NoError(t, err)
+	assert.Nil(t, winner)
 
-	err = g.Play(p1, Statement0)
+	winner, err = g.Play(p1, Statement0)
 	assert.ErrorIs(t, err, ErrCanPlayTwice)
+	assert.Nil(t, winner)
 
-	err = g.Play(p2, Statement0)
+	winner, err = g.Play(p2, Statement0)
 	assert.ErrorIs(t, err, ErrInvalidStatement)
 
-	err = g.Play(p2, Statement1)
+	winner, err = g.Play(p2, Statement1)
 	assert.NoError(t, err)
+	assert.Nil(t, winner)
+}
+
+func TestPlayWinner(t *testing.T) {
+	var (
+		p1 = NewHumanPlayer(XTeam)
+		p2 = NewHumanPlayer(OTeam)
+		g  = NewGame(p1)
+	)
+
+	g.Join(p2)
+
+	winner, _ := g.Play(p1, Statement0)
+	assert.Nil(t, winner)
+
+	winner, _ = g.Play(p2, Statement3)
+	assert.Nil(t, winner)
+
+	winner, _ = g.Play(p1, Statement1)
+	assert.Nil(t, winner)
+
+	winner, _ = g.Play(p2, Statement4)
+	assert.Nil(t, winner)
+
+	winner, _ = g.Play(p1, Statement2)
+	assert.NotNil(t, winner)
+	assert.Equal(t, p1.GetTeam(), winner.GetTeam())
 }

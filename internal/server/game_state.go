@@ -23,7 +23,7 @@ const (
 type Statement byte
 
 const (
-	Statement0 = iota
+	Statement0 Statement = iota
 	Statement1
 	Statement2
 	Statement3
@@ -51,8 +51,9 @@ type Game struct {
 	state GameState
 
 	// store round history
-	lastRound *round
-	rounds    [9]*round
+	lastRound  *round
+	rounds     [9]*round
+	roundsLeft byte
 
 	// players of the game
 	player1 Player
@@ -61,9 +62,10 @@ type Game struct {
 
 func NewGame(p1 Player) *Game {
 	return &Game{
-		id:      uuid.New(),
-		state:   GameCreated,
-		player1: p1,
+		id:         uuid.New(),
+		state:      GameCreated,
+		player1:    p1,
+		roundsLeft: 9,
 	}
 }
 
@@ -82,23 +84,23 @@ func (g *Game) Join(p2 Player) error {
 	return nil
 }
 
-func (g *Game) Play(p Player, s Statement) error {
+func (g *Game) Play(p Player, s Statement) (Player, error) {
 	if g.state == GameCreated {
-		return ErrWaitingPlayerJoin
+		return nil, ErrWaitingPlayerJoin
 	}
 
 	if g.state == GameOver {
-		return ErrGameOverAlready
+		return nil, ErrGameOverAlready
 	}
 
 	if g.lastRound != nil &&
-		g.lastRound.player.GetTeam() == p.GetTeam() {
+		g.lastRound.player == p {
 
-		return ErrCanPlayTwice
+		return nil, ErrCanPlayTwice
 	}
 
 	if g.rounds[s] != nil {
-		return ErrInvalidStatement
+		return nil, ErrInvalidStatement
 	}
 
 	r := &round{
@@ -111,9 +113,58 @@ func (g *Game) Play(p Player, s Statement) error {
 
 	// we need at least 5 rounds to be able to have a winner
 	// then we must check
-	if len(g.rounds) > 4 {
-		//TODO check if has a winner and
+	g.roundsLeft--
+	if g.roundsLeft < 6 {
+		if g.hasWinner() {
+			g.state = GameOver
+			return p, nil
+		}
+		// tied
+		if g.roundsLeft == 0 {
+			g.state = GameOver
+			return nil, nil
+		}
 	}
 
-	return nil
+	return nil, nil
+}
+
+func (g *Game) hasWinner() bool {
+	//rows
+	if g.allSameTeam(Statement0, Statement1, Statement2) {
+		return true
+	}
+	if g.allSameTeam(Statement3, Statement4, Statement5) {
+		return true
+	}
+	if g.allSameTeam(Statement6, Statement7, Statement8) {
+		return true
+	}
+	//cols
+	if g.allSameTeam(Statement0, Statement3, Statement6) {
+		return true
+	}
+	if g.allSameTeam(Statement1, Statement4, Statement7) {
+		return true
+	}
+	if g.allSameTeam(Statement2, Statement5, Statement8) {
+		return true
+	}
+	//diagonal
+	if g.allSameTeam(Statement0, Statement4, Statement8) {
+		return true
+	}
+	if g.allSameTeam(Statement2, Statement4, Statement6) {
+		return true
+	}
+
+	return false
+}
+
+func (g *Game) allSameTeam(s1, s2, s3 Statement) bool {
+	if g.rounds[s1] == nil || g.rounds[s2] == nil || g.rounds[s3] == nil {
+		return false
+	}
+
+	return g.rounds[s1].player.GetTeam() == g.rounds[s2].player.GetTeam() && g.rounds[s2].player.GetTeam() == g.rounds[s3].player.GetTeam()
 }
