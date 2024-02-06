@@ -7,25 +7,23 @@ import (
 
 type Room struct {
 	acceptor ConnectionAcceptor
-	game     Game
+	game     *Game
 
 	p1Conn net.Conn
 	p2Conn net.Conn
 }
 
-func (r *Room) NewRoom(acceptor ConnectionAcceptor) *Room {
-	room := &Room{}
-
-	go waitingPlayers(room)
-
-	return room
+func NewRoom(acceptor ConnectionAcceptor) *Room {
+	r := &Room{
+   acceptor: acceptor,
 }
 
-func (r *Room) Join(p2 Player) error {
-	return r.game.Join(p2)
+	go waitingPlayers(r)
+
+	return r
 }
 
-// replace for onAccepted event
+// TODO: replace logic and dispatch onAccepted event
 func waitingPlayers(room *Room) {
 	for i := 0; i < 2; i++ {
 		fmt.Println("waiting players joining room...")
@@ -34,7 +32,7 @@ func waitingPlayers(room *Room) {
 
 		p1 := NewHumanPlayer(OTeam)
 
-		room.game = *NewGame(p1)
+		room.game = NewGame(p1)
 		room.p1Conn = p1Conn
 
 		fmt.Println("waiting player 2 joining room...")
