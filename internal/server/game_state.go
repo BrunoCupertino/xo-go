@@ -70,12 +70,12 @@ func NewGame(p1 Player) *Game {
 }
 
 func (g *Game) Join(p2 Player) error {
-	if g.player1.GetTeam() == p2.GetTeam() {
-		return ErrTeamAlreadySelected
-	}
-
 	if g.state == GameStarted {
 		return ErrCantJoinStartedGame
+	}
+
+	if g.player1.GetTeam() == p2.GetTeam() {
+		return ErrTeamAlreadySelected
 	}
 
 	g.player2 = p2
@@ -130,6 +130,7 @@ func (g *Game) Play(p Player, s Statement) (Player, error) {
 }
 
 func (g *Game) hasWinner() bool {
+	// I know it's weird maybe I will refactor and use bit flags
 	//rows
 	if g.allSameTeam(Statement0, Statement1, Statement2) {
 		return true

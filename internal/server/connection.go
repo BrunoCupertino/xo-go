@@ -1,10 +1,12 @@
 package server
 
 import (
+	"io"
 	"net"
 )
 
 type ConnectionAcceptor interface {
+	io.Closer
 	Listen() (net.Conn, error)
 }
 
@@ -42,4 +44,8 @@ func (c *TCPConnectorAcceptor) Listen() (net.Conn, error) {
 	}
 
 	return conn, nil
+}
+
+func (c *TCPConnectorAcceptor) Close() error {
+	return c.listener.Close()
 }

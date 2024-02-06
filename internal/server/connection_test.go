@@ -2,6 +2,7 @@ package server
 
 import (
 	"net"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,12 +17,13 @@ func TestTCPAcceptor(t *testing.T) {
 		acceptor = NewTCPConnectionAcceptor(opts)
 	)
 
-	chanRes := make(chan struct{})
+	var wg sync.WaitGroup
+	wg.Add(1)
 
 	go func() {
 		conn, err = acceptor.Listen()
 
-		chanRes <- struct{}{}
+		wg.Done()
 	}()
 
 	_, err2 := net.Dial("tcp", "localhost:8088")
@@ -29,7 +31,7 @@ func TestTCPAcceptor(t *testing.T) {
 		panic(err2)
 	}
 
-	<-chanRes
+	wg.Wait()
 
 	assert.NotNil(t, conn)
 	assert.NoError(t, err)
