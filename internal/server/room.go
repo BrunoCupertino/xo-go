@@ -45,18 +45,12 @@ func (r *Room) waitingPlayers() {
 	for i := 0; i < 2; i++ {
 		fmt.Println("waiting players joining room...")
 
-		p1Conn, _ := r.acceptor.Listen()
+		playerConn, _ := r.acceptor.Listen()
 
-		fmt.Println("player 1 has joinned the room")
+		fmt.Printf("player %d has joinned the room\n", i+1)
 
-		r.onConnected(p1Conn)
-
-		fmt.Println("waiting player 2 joining room...")
-
-		p2Conn, _ := r.acceptor.Listen()
-
-		fmt.Println("player 2 has joinned the room")
-
-		r.onConnected(p2Conn)
+		r.onConnected(playerConn)
 	}
+
+	fmt.Println("waiting finished")
 }

@@ -19,15 +19,13 @@ func TestPlayersOnConnected(t *testing.T) {
 	assert.Nil(t, room.game)
 
 	_, err = net.Dial("tcp", "localhost:8089")
-
-	time.Sleep(time.Microsecond * 50)
-
+	time.Sleep(time.Microsecond * 20)
 	assert.NoError(t, err)
 	assert.NotNil(t, room.game)
 
 	_, err = net.Dial("tcp", "localhost:8089")
-
-	time.Sleep(time.Microsecond * 50)
-
 	assert.NoError(t, err)
+
+	_, err = net.Dial("tcp", "localhost:8089")
+	assert.Error(t, err)
 }
