@@ -84,8 +84,6 @@ func readMsgsFromConnection(conn net.Conn, onMessageChann chan<- []byte) {
 		msg := make([]byte, n)
 		copy(msg, buf[:n])
 
-		//fmt.Printf("message >> %s \n", string(msg))
-
 		onMessageChann <- msg
 	}
 }
