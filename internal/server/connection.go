@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"io"
 	"net"
 )
@@ -30,6 +31,8 @@ func NewTCPConnectionAcceptor(opts *ConnectorAcceptorOpts) *TCPConnectorAcceptor
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("listening on port %s \n", opts.port)
 
 	return &TCPConnectorAcceptor{
 		listener: ln,
