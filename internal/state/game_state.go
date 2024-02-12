@@ -129,6 +129,18 @@ func (g *Game) Play(p Player, s Square) (Player, error) {
 	return nil, nil
 }
 
+func (g *Game) GetPlayer1() Player {
+	return g.player1
+}
+
+func (g *Game) GetPlayer2() Player {
+	return g.player2
+}
+
+func (g *Game) GetStatus() GameState {
+	return g.state
+}
+
 func (g *Game) hasWinner() bool {
 	// I know it's weird maybe I will refactor and use bit flags
 	//rows
