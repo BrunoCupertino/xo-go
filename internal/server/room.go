@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+
+	"github.com/BrunoCupertino/xo-go/internal/state"
 )
 
 type Room struct {
 	acceptor ConnectionAcceptor
-	game     *Game
+	game     *state.Game
 
 	p1Conn net.Conn
 	p2Conn net.Conn
@@ -35,9 +37,9 @@ func NewRoom(acceptor ConnectionAcceptor) *Room {
 func (r *Room) onConnected(playerConn net.Conn) {
 	if r.game == nil {
 
-		p1 := NewHumanPlayer(OTeam)
+		p1 := state.NewHumanPlayer(OTeam)
 
-		r.game = NewGame(p1)
+		r.game = state.NewGame(p1)
 		r.p1Conn = playerConn
 		r.p1Chann = make(chan []byte, 10)
 
@@ -48,7 +50,7 @@ func (r *Room) onConnected(playerConn net.Conn) {
 		return
 	}
 
-	p2 := NewHumanPlayer(XTeam)
+	p2 := state.NewHumanPlayer(XTeam)
 
 	r.game.Join(p2)
 	r.p2Conn = playerConn
@@ -81,7 +83,7 @@ func (r *Room) Start() {
 	}
 }
 
-func (r *Room) tryPlay(p Player, cmd string) error {
+func (r *Room) tryPlay(p state.Player, cmd string) error {
 	if string(cmd[0]) != "S" {
 		fmt.Printf("error while playing cmd %s", string(cmd[0]))
 		return errUnknownMessage
@@ -146,7 +148,7 @@ func (r *Room) waitingPlayers() {
 	fmt.Println("waiting finished")
 }
 
-func (r *Room) send(player Player, data string) error {
+func (r *Room) send(player state.Player, data string) error {
 	if r.game.player1 == player {
 		_, err := r.p1Conn.Write([]byte(data))
 		return err
@@ -160,3 +162,22 @@ func (r *Room) broadcast(data string) error {
 	r.send(r.game.player1, data)
 	return r.send(r.game.player2, data)
 }
+
+// Room:
+// Join(player): create or join the game (player, error)
+// Play(Statement): play round (Statement, game status, error)
+
+// ServerGameManager:
+// New(): create room and async wait for players | async call onConnected(player)
+// onConnected(conn): assign player to its connection and start listened msgs from conn
+// Start(): consume msgs from players, decode and call room.Play()
+
+// Statement:
+// (team, square, game status)
+
+// Encoder:
+// DefaultEncoder
+// Encode(Statement): encode statement into string then []byte
+// Decode([]byte): decode data into string, then Statement
+
+// Room, GameState must be private
