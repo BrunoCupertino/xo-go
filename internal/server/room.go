@@ -37,7 +37,7 @@ func NewRoom(acceptor ConnectionAcceptor) *Room {
 func (r *Room) onConnected(playerConn net.Conn) {
 	if r.game == nil {
 
-		p1 := state.NewHumanPlayer(OTeam)
+		p1 := state.NewHumanPlayer(state.OTeam)
 
 		r.game = state.NewGame(p1)
 		r.p1Conn = playerConn
@@ -50,7 +50,7 @@ func (r *Room) onConnected(playerConn net.Conn) {
 		return
 	}
 
-	p2 := state.NewHumanPlayer(XTeam)
+	p2 := state.NewHumanPlayer(state.XTeam)
 
 	r.game.Join(p2)
 	r.p2Conn = playerConn

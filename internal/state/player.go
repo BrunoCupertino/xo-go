@@ -3,8 +3,9 @@ package state
 type Team string
 
 const (
-	XTeam Team = "X"
-	OTeam Team = "O"
+	NoTeam Team = ""
+	XTeam  Team = "X"
+	OTeam  Team = "O"
 )
 
 type Player interface {
