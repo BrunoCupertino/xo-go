@@ -1,8 +1,10 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net"
+	"strconv"
 )
 
 type Room struct {
@@ -16,6 +18,8 @@ type Room struct {
 	p1Chann    chan []byte
 	p2Chann    chan []byte
 }
+
+var errUnknownMessage = errors.New("unkown message")
 
 func NewRoom(acceptor ConnectionAcceptor) *Room {
 	r := &Room{
@@ -37,6 +41,8 @@ func (r *Room) onConnected(playerConn net.Conn) {
 		r.p1Conn = playerConn
 		r.p1Chann = make(chan []byte, 10)
 
+		r.send(p1, "TO1")
+
 		go readMsgsFromConnection(r.p1Conn, r.p1Chann)
 
 		return
@@ -47,6 +53,8 @@ func (r *Room) onConnected(playerConn net.Conn) {
 	r.game.Join(p2)
 	r.p2Conn = playerConn
 	r.p2Chann = make(chan []byte, 10)
+
+	r.send(p2, "TX2")
 
 	go readMsgsFromConnection(r.p2Conn, r.p2Chann)
 
@@ -65,10 +73,44 @@ func (r *Room) Start() {
 		select {
 		case p1Msg := <-r.p1Chann:
 			fmt.Printf("player 1 send this message: %s \n", string(p1Msg))
+			r.tryPlay(r.game.player1, string(p1Msg))
 		case p2Msg := <-r.p2Chann:
 			fmt.Printf("player 2 send this message: %s \n", string(p2Msg))
+			r.tryPlay(r.game.player2, string(p2Msg))
 		}
 	}
+}
+
+func (r *Room) tryPlay(p Player, cmd string) error {
+	if string(cmd[0]) != "S" {
+		fmt.Printf("error while playing cmd %s", string(cmd[0]))
+		return errUnknownMessage
+	}
+
+	if string(cmd[1]) != string(p.GetTeam()) {
+		fmt.Printf("error while playing diff team %s", string(cmd[1]))
+		return errUnknownMessage
+	}
+
+	s, _ := strconv.Atoi(string(cmd[2]))
+
+	var statement Statement = Statement(byte(s))
+
+	winner, err := r.game.Play(p, statement)
+	if err != nil {
+		fmt.Printf("error while playing %d", err)
+		return err
+	}
+
+	fmt.Print("well played")
+
+	if winner == nil {
+		return r.broadcast(fmt.Sprintf("S%s%d", p.GetTeam(), statement))
+	}
+
+	fmt.Printf("game over, winner %s", winner.GetTeam())
+
+	return r.broadcast(fmt.Sprintf("W%s%d", p.GetTeam(), statement))
 }
 
 func readMsgsFromConnection(conn net.Conn, onMessageChann chan<- []byte) {
@@ -102,4 +144,19 @@ func (r *Room) waitingPlayers() {
 	}
 
 	fmt.Println("waiting finished")
+}
+
+func (r *Room) send(player Player, data string) error {
+	if r.game.player1 == player {
+		_, err := r.p1Conn.Write([]byte(data))
+		return err
+	}
+
+	_, err := r.p2Conn.Write([]byte(data))
+	return err
+}
+
+func (r *Room) broadcast(data string) error {
+	r.send(r.game.player1, data)
+	return r.send(r.game.player2, data)
 }

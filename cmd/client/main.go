@@ -23,7 +23,7 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(time.Second * 1)
-			connector.Send([]byte("hi"))
+			// connector.Send([]byte("hi"))
 		}
 	}()
 

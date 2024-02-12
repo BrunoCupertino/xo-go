@@ -23,3 +23,11 @@ make build
 # for running tests
 make tests
 ```
+
+game steps
+1. server create room and wait for conn
+2. client 1 connect to server, join the room and receive his team (X/O) >> TO1
+3. client 2 connect to server, join the room and receive his team (X/O) >> TX2
+4. client 1 play                                                        >> SO0
+5. client 1 and 2 receive game changed event from server                >> SO0
+6. client 1 and 2 receive game over event                               >> WO1
