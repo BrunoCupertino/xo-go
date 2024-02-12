@@ -94,7 +94,7 @@ func (r *Room) tryPlay(p Player, cmd string) error {
 
 	s, _ := strconv.Atoi(string(cmd[2]))
 
-	var statement Statement = Statement(byte(s))
+	var statement Square = Square(byte(s))
 
 	winner, err := r.game.Play(p, statement)
 	if err != nil {

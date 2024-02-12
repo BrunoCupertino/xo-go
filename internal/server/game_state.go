@@ -14,36 +14,36 @@ const (
 	GameOver
 )
 
-// Statement is the postion played as following:
+// Square represent tic tac toe squares as following:
 // 0 | 1 | 2
 // ---------
 // 3 | 4 | 5
 // ---------
 // 6 | 7 | 8
-type Statement byte
+type Square byte
 
 const (
-	Statement0 Statement = iota
-	Statement1
-	Statement2
-	Statement3
-	Statement4 // middle
-	Statement5
-	Statement6
-	Statement7
-	Statement8
+	Square0 Square = iota
+	Square1
+	Square2
+	Square3
+	Square4 // middle
+	Square5
+	Square6
+	Square7
+	Square8
 )
 
-var ErrCanPlayTwice = errors.New("can not play twice in a row")
+var ErrCanPlayTwice = errors.New("can not play twice wait your turn")
 var ErrTeamAlreadySelected = errors.New("team already selected")
-var ErrCantJoinStartedGame = errors.New("can not join started game")
-var ErrWaitingPlayerJoin = errors.New("waiting player 2 join the game")
-var ErrGameOverAlready = errors.New("game over already, somebody got fineshed!")
-var ErrInvalidStatement = errors.New("statement invalid by brother")
+var ErrCantJoinStartedGame = errors.New("can not join a started game")
+var ErrWaitingPlayerJoin = errors.New("waiting player join the game")
+var ErrGameOverAlready = errors.New("ow this game is over already, somebody got finished!")
+var ErrInvalidSquare = errors.New("square invalid my brother")
 
 type round struct {
-	player    Player
-	statement Statement
+	player Player
+	square Square
 }
 
 type Game struct {
@@ -84,7 +84,7 @@ func (g *Game) Join(p2 Player) error {
 	return nil
 }
 
-func (g *Game) Play(p Player, s Statement) (Player, error) {
+func (g *Game) Play(p Player, s Square) (Player, error) {
 	if g.state == GameCreated {
 		return nil, ErrWaitingPlayerJoin
 	}
@@ -100,12 +100,12 @@ func (g *Game) Play(p Player, s Statement) (Player, error) {
 	}
 
 	if g.rounds[s] != nil {
-		return nil, ErrInvalidStatement
+		return nil, ErrInvalidSquare
 	}
 
 	r := &round{
-		player:    p,
-		statement: s,
+		player: p,
+		square: s,
 	}
 
 	g.rounds[s] = r
@@ -132,40 +132,41 @@ func (g *Game) Play(p Player, s Statement) (Player, error) {
 func (g *Game) hasWinner() bool {
 	// I know it's weird maybe I will refactor and use bit flags
 	//rows
-	if g.allSameTeam(Statement0, Statement1, Statement2) {
+	if g.allSameTeam(Square0, Square1, Square2) {
 		return true
 	}
-	if g.allSameTeam(Statement3, Statement4, Statement5) {
+	if g.allSameTeam(Square3, Square4, Square5) {
 		return true
 	}
-	if g.allSameTeam(Statement6, Statement7, Statement8) {
+	if g.allSameTeam(Square6, Square7, Square8) {
 		return true
 	}
 	//cols
-	if g.allSameTeam(Statement0, Statement3, Statement6) {
+	if g.allSameTeam(Square0, Square3, Square6) {
 		return true
 	}
-	if g.allSameTeam(Statement1, Statement4, Statement7) {
+	if g.allSameTeam(Square1, Square4, Square7) {
 		return true
 	}
-	if g.allSameTeam(Statement2, Statement5, Statement8) {
+	if g.allSameTeam(Square2, Square5, Square8) {
 		return true
 	}
 	//diagonal
-	if g.allSameTeam(Statement0, Statement4, Statement8) {
+	if g.allSameTeam(Square0, Square4, Square8) {
 		return true
 	}
-	if g.allSameTeam(Statement2, Statement4, Statement6) {
+	if g.allSameTeam(Square2, Square4, Square6) {
 		return true
 	}
 
 	return false
 }
 
-func (g *Game) allSameTeam(s1, s2, s3 Statement) bool {
+func (g *Game) allSameTeam(s1, s2, s3 Square) bool {
 	if g.rounds[s1] == nil || g.rounds[s2] == nil || g.rounds[s3] == nil {
 		return false
 	}
 
-	return g.rounds[s1].player.GetTeam() == g.rounds[s2].player.GetTeam() && g.rounds[s2].player.GetTeam() == g.rounds[s3].player.GetTeam()
+	return g.rounds[s1].player.GetTeam() == g.rounds[s2].player.GetTeam() &&
+		g.rounds[s2].player.GetTeam() == g.rounds[s3].player.GetTeam()
 }

@@ -49,24 +49,24 @@ func TestPlayValidations(t *testing.T) {
 		g  = NewGame(p1)
 	)
 
-	winner, err := g.Play(p1, Statement0)
+	winner, err := g.Play(p1, Square0)
 	assert.ErrorIs(t, err, ErrWaitingPlayerJoin)
 	assert.Nil(t, winner)
 
 	g.Join(p2)
 
-	winner, err = g.Play(p1, Statement0)
+	winner, err = g.Play(p1, Square0)
 	assert.NoError(t, err)
 	assert.Nil(t, winner)
 
-	winner, err = g.Play(p1, Statement0)
+	winner, err = g.Play(p1, Square0)
 	assert.ErrorIs(t, err, ErrCanPlayTwice)
 	assert.Nil(t, winner)
 
-	winner, err = g.Play(p2, Statement0)
-	assert.ErrorIs(t, err, ErrInvalidStatement)
+	winner, err = g.Play(p2, Square0)
+	assert.ErrorIs(t, err, ErrInvalidSquare)
 
-	winner, err = g.Play(p2, Statement1)
+	winner, err = g.Play(p2, Square1)
 	assert.NoError(t, err)
 	assert.Nil(t, winner)
 }
@@ -80,19 +80,19 @@ func TestPlayWinner(t *testing.T) {
 
 	g.Join(p2)
 
-	winner, _ := g.Play(p1, Statement0)
+	winner, _ := g.Play(p1, Square0)
 	assert.Nil(t, winner)
 
-	winner, _ = g.Play(p2, Statement3)
+	winner, _ = g.Play(p2, Square3)
 	assert.Nil(t, winner)
 
-	winner, _ = g.Play(p1, Statement1)
+	winner, _ = g.Play(p1, Square1)
 	assert.Nil(t, winner)
 
-	winner, _ = g.Play(p2, Statement4)
+	winner, _ = g.Play(p2, Square4)
 	assert.Nil(t, winner)
 
-	winner, _ = g.Play(p1, Statement2)
+	winner, _ = g.Play(p1, Square2)
 	assert.NotNil(t, winner)
 	assert.Equal(t, p1.GetTeam(), winner.GetTeam())
 }
