@@ -51,19 +51,14 @@ func (m *GameManager) Start() {
 	m.room = NewRoom()
 
 	go m.waitingForPlayers()
-	//fmt.Println("waiting start")
 
 	<-m.startChan
-
-	//fmt.Println("waiting done")
 
 	for {
 		select {
 		case msg := <-m.p1.msgChan:
-			//fmt.Printf("player 1 send this message: %s \n", string(msg))
 			m.process(m.p1, msg)
 		case msg := <-m.p2.msgChan:
-			//fmt.Printf("player 2 send this message: %s \n", string(msg))
 			m.process(m.p1, msg)
 		}
 	}
