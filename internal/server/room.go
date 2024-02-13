@@ -5,8 +5,8 @@ import (
 )
 
 type Room struct {
-	game   *state.Game
-	winner state.Player
+	gameState *state.GameState
+	winner    state.Player
 }
 
 func NewRoom() *Room {
@@ -16,29 +16,29 @@ func NewRoom() *Room {
 }
 
 func (r *Room) CreatePlayerAndJoin() (state.Player, error) {
-	if r.game == nil {
+	if r.gameState == nil {
 		p1 := state.NewHumanPlayer(state.OTeam)
 
-		r.game = state.NewGame(p1)
+		r.gameState = state.NewGameState(p1)
 
 		return p1, nil
 	}
 
 	p2 := state.NewHumanPlayer(state.XTeam)
 
-	return p2, r.game.Join(p2)
+	return p2, r.gameState.Join(p2)
 }
 
-func (r *Room) Play(s state.Statement) (*state.Statement, state.GameState, error) {
+func (r *Room) Play(s state.Statement) (*state.Statement, state.GameStatus, error) {
 	player := r.GetPlayerByTeam(s.Team)
 
-	winner, err := r.game.Play(player, s.Square)
+	winner, err := r.gameState.Play(player, s.Square)
 	if err != nil {
-		return nil, r.game.GetStatus(), err
+		return nil, r.gameState.GetStatus(), err
 	}
 
 	statement := s
-	gameStatus := r.game.GetStatus()
+	gameStatus := r.gameState.GetStatus()
 
 	if gameStatus == state.GameOver {
 		teamWinner := state.NoTeam
@@ -51,15 +51,15 @@ func (r *Room) Play(s state.Statement) (*state.Statement, state.GameState, error
 		statement = *state.NewStatement(state.GameOvered, teamWinner, s.Square)
 	}
 
-	return &statement, r.game.GetStatus(), err
+	return &statement, r.gameState.GetStatus(), err
 }
 
 func (r *Room) GetPlayerByTeam(t state.Team) state.Player {
-	player := r.game.GetPlayer1()
+	player := r.gameState.GetPlayer1()
 
 	if player.GetTeam() == t {
 		return player
 	}
 
-	return r.game.GetPlayer2()
+	return r.gameState.GetPlayer2()
 }

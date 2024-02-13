@@ -6,10 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
-type GameState byte
+type GameStatus byte
 
 const (
-	GameCreated GameState = iota
+	GameCreated GameStatus = iota
 	GameStarted
 	GameOver
 )
@@ -46,9 +46,9 @@ type round struct {
 	square Square
 }
 
-type Game struct {
-	id    uuid.UUID
-	state GameState
+type GameState struct {
+	id     uuid.UUID
+	status GameStatus
 
 	// store round history
 	lastRound  *round
@@ -60,17 +60,17 @@ type Game struct {
 	player2 Player
 }
 
-func NewGame(p1 Player) *Game {
-	return &Game{
+func NewGameState(p1 Player) *GameState {
+	return &GameState{
 		id:         uuid.New(),
-		state:      GameCreated,
+		status:     GameCreated,
 		player1:    p1,
 		roundsLeft: 9,
 	}
 }
 
-func (g *Game) Join(p2 Player) error {
-	if g.state == GameStarted {
+func (g *GameState) Join(p2 Player) error {
+	if g.status == GameStarted {
 		return ErrCantJoinStartedGame
 	}
 
@@ -79,17 +79,17 @@ func (g *Game) Join(p2 Player) error {
 	}
 
 	g.player2 = p2
-	g.state = GameStarted
+	g.status = GameStarted
 
 	return nil
 }
 
-func (g *Game) Play(p Player, s Square) (Player, error) {
-	if g.state == GameCreated {
+func (g *GameState) Play(p Player, s Square) (Player, error) {
+	if g.status == GameCreated {
 		return nil, ErrWaitingPlayerJoin
 	}
 
-	if g.state == GameOver {
+	if g.status == GameOver {
 		return nil, ErrGameOverAlready
 	}
 
@@ -116,12 +116,12 @@ func (g *Game) Play(p Player, s Square) (Player, error) {
 	g.roundsLeft--
 	if g.roundsLeft < 6 {
 		if g.hasWinner() {
-			g.state = GameOver
+			g.status = GameOver
 			return p, nil
 		}
 		// tied
 		if g.roundsLeft == 0 {
-			g.state = GameOver
+			g.status = GameOver
 			return nil, nil
 		}
 	}
@@ -129,19 +129,19 @@ func (g *Game) Play(p Player, s Square) (Player, error) {
 	return nil, nil
 }
 
-func (g *Game) GetPlayer1() Player {
+func (g *GameState) GetPlayer1() Player {
 	return g.player1
 }
 
-func (g *Game) GetPlayer2() Player {
+func (g *GameState) GetPlayer2() Player {
 	return g.player2
 }
 
-func (g *Game) GetStatus() GameState {
-	return g.state
+func (g *GameState) GetStatus() GameStatus {
+	return g.status
 }
 
-func (g *Game) hasWinner() bool {
+func (g *GameState) hasWinner() bool {
 	// I know it's weird maybe I will refactor and use bit flags
 	//rows
 	if g.allSameTeam(Square0, Square1, Square2) {
@@ -174,7 +174,7 @@ func (g *Game) hasWinner() bool {
 	return false
 }
 
-func (g *Game) allSameTeam(s1, s2, s3 Square) bool {
+func (g *GameState) allSameTeam(s1, s2, s3 Square) bool {
 	if g.rounds[s1] == nil || g.rounds[s2] == nil || g.rounds[s3] == nil {
 		return false
 	}

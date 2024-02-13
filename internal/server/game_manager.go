@@ -90,6 +90,8 @@ func (m *GameManager) onConnected(playerConn net.Conn) {
 		return
 	}
 
+	fmt.Println("player has joinned the room")
+
 	bp := newByPlayer(player, playerConn)
 
 	m.send(bp, state.NewStatement(state.TeamSelected, player.GetTeam(), 0))

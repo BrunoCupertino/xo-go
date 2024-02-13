@@ -9,10 +9,10 @@ import (
 func TestNewGame(t *testing.T) {
 	var (
 		p1 = NewHumanPlayer(XTeam)
-		g  = NewGame(p1)
+		g  = NewGameState(p1)
 	)
 
-	assert.Equal(t, GameCreated, g.state)
+	assert.Equal(t, GameCreated, g.status)
 	assert.Equal(t, p1, g.player1)
 }
 
@@ -20,13 +20,13 @@ func TestJoin(t *testing.T) {
 	var (
 		p1 = NewHumanPlayer(XTeam)
 		p2 = NewHumanPlayer(XTeam)
-		g  = NewGame(p1)
+		g  = NewGameState(p1)
 	)
 
 	err := g.Join(p2)
 
 	assert.ErrorIs(t, err, ErrTeamAlreadySelected)
-	assert.Equal(t, GameCreated, g.state)
+	assert.Equal(t, GameCreated, g.status)
 	assert.Nil(t, g.player2)
 
 	p2 = NewHumanPlayer(OTeam)
@@ -34,19 +34,19 @@ func TestJoin(t *testing.T) {
 	err = g.Join(p2)
 
 	assert.NoError(t, err)
-	assert.Equal(t, GameStarted, g.state)
+	assert.Equal(t, GameStarted, g.status)
 	assert.Equal(t, p2, g.player2)
 
 	err = g.Join(p2)
 	assert.ErrorIs(t, err, ErrCantJoinStartedGame)
-	assert.Equal(t, GameStarted, g.state)
+	assert.Equal(t, GameStarted, g.status)
 }
 
 func TestPlayValidations(t *testing.T) {
 	var (
 		p1 = NewHumanPlayer(XTeam)
 		p2 = NewHumanPlayer(OTeam)
-		g  = NewGame(p1)
+		g  = NewGameState(p1)
 	)
 
 	winner, err := g.Play(p1, Square0)
@@ -75,7 +75,7 @@ func TestPlayWinner(t *testing.T) {
 	var (
 		p1 = NewHumanPlayer(XTeam)
 		p2 = NewHumanPlayer(OTeam)
-		g  = NewGame(p1)
+		g  = NewGameState(p1)
 	)
 
 	g.Join(p2)
