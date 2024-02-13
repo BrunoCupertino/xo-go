@@ -3,7 +3,7 @@ package state
 type Team string
 
 const (
-	NoTeam Team = ""
+	NoTeam Team = "-"
 	XTeam  Team = "X"
 	OTeam  Team = "O"
 )
