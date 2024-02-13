@@ -8,25 +8,25 @@ import (
 
 type ConnectionAcceptor interface {
 	io.Closer
-	Listen() (net.Conn, error)
+	ListenAndAccept() (net.Conn, error)
 }
 
-type TCPConnectorAcceptor struct {
-	opts     *ConnectorAcceptorOpts
+type TCPConnectionAcceptor struct {
+	opts     *ConnectionAcceptorOpts
 	listener net.Listener
 }
 
-type ConnectorAcceptorOpts struct {
+type ConnectionAcceptorOpts struct {
 	port string
 }
 
-func NewConnectorAcceptorOpts(port string) *ConnectorAcceptorOpts {
-	return &ConnectorAcceptorOpts{
+func NewConnectorAcceptorOpts(port string) *ConnectionAcceptorOpts {
+	return &ConnectionAcceptorOpts{
 		port: port,
 	}
 }
 
-func NewTCPConnectionAcceptor(opts *ConnectorAcceptorOpts) *TCPConnectorAcceptor {
+func NewTCPConnectionAcceptor(opts *ConnectionAcceptorOpts) *TCPConnectionAcceptor {
 	ln, err := net.Listen("tcp", ":"+opts.port)
 	if err != nil {
 		panic(err)
@@ -34,13 +34,13 @@ func NewTCPConnectionAcceptor(opts *ConnectorAcceptorOpts) *TCPConnectorAcceptor
 
 	fmt.Printf("listening on port %s \n", opts.port)
 
-	return &TCPConnectorAcceptor{
+	return &TCPConnectionAcceptor{
 		listener: ln,
 		opts:     opts,
 	}
 }
 
-func (c *TCPConnectorAcceptor) Listen() (net.Conn, error) {
+func (c *TCPConnectionAcceptor) ListenAndAccept() (net.Conn, error) {
 	conn, err := c.listener.Accept()
 	if err != nil {
 		return nil, err
@@ -49,6 +49,6 @@ func (c *TCPConnectorAcceptor) Listen() (net.Conn, error) {
 	return conn, nil
 }
 
-func (c *TCPConnectorAcceptor) Close() error {
+func (c *TCPConnectionAcceptor) Close() error {
 	return c.listener.Close()
 }

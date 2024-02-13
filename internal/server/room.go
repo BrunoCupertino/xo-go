@@ -1,8 +1,6 @@
 package server
 
 import (
-	"errors"
-
 	"github.com/BrunoCupertino/xo-go/internal/state"
 )
 
@@ -10,8 +8,6 @@ type Room struct {
 	game   *state.Game
 	winner state.Player
 }
-
-var errUnknownMessage = errors.New("unkown message")
 
 func NewRoom() *Room {
 	r := &Room{}

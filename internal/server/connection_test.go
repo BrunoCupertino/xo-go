@@ -21,7 +21,7 @@ func TestTCPAcceptor(t *testing.T) {
 	wg.Add(1)
 
 	go func() {
-		conn, err = acceptor.Listen()
+		conn, err = acceptor.ListenAndAccept()
 
 		wg.Done()
 	}()

@@ -126,7 +126,7 @@ func (m *GameManager) waitingForPlayers() {
 
 	for i := 0; i < 2; i++ {
 
-		playerConn, _ := m.acceptor.Listen()
+		playerConn, _ := m.acceptor.ListenAndAccept()
 
 		m.onConnected(playerConn)
 	}
