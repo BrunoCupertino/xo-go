@@ -4,42 +4,50 @@ import (
 	"errors"
 	"fmt"
 	"net"
+
+	"github.com/BrunoCupertino/xo-go/internal/encoding"
+	"github.com/BrunoCupertino/xo-go/internal/state"
 )
 
-type Connector interface {
-	Connect() error
+type GameClientManager interface {
 	Start()
-	Send(data []byte) error
+	Stop()
+	Send(s *state.Square) error
 }
 
-type TCPConnector struct {
-	opts *TCPConnectorOpts
-	conn net.Conn
-
-	startChann     chan struct{}
-	onMessageChann chan []byte
+type TCPGameClientManager struct {
+	opts       *TCPGameClientManagerOpts
+	conn       net.Conn
+	encoder    encoding.StatementEncoder
+	state      *ClientGameState
+	renderer   Renderer
+	startChann chan struct{}
+	msgChan    chan []byte
 }
 
-type TCPConnectorOpts struct {
+type TCPGameClientManagerOpts struct {
 	addr string
-	// OnMessage func(any)
 }
 
-func NewTCPConnectorOpts(addr string) *TCPConnectorOpts {
-	return &TCPConnectorOpts{
+func NewTCPGameClientManagerOpts(addr string) *TCPGameClientManagerOpts {
+	return &TCPGameClientManagerOpts{
 		addr: addr,
 	}
 }
 
-func NewTCPConnector(opts *TCPConnectorOpts) *TCPConnector {
-	return &TCPConnector{
-		opts: opts,
-		// startChann:     make(chan struct{}),
-		onMessageChann: make(chan []byte, 10),
+func NewTCPGameClientManager(opts *TCPGameClientManagerOpts,
+	e encoding.StatementEncoder,
+	r Renderer) *TCPGameClientManager {
+
+	return &TCPGameClientManager{
+		opts:     opts,
+		encoder:  e,
+		renderer: r,
+		msgChan:  make(chan []byte),
 	}
 }
 
-func (c *TCPConnector) Connect() error {
+func (c *TCPGameClientManager) connect() error {
 	conn, err := net.Dial("tcp", c.opts.addr)
 	if err != nil {
 		return err
@@ -47,34 +55,35 @@ func (c *TCPConnector) Connect() error {
 
 	c.conn = conn
 
-	go c.readMessages()
-
 	fmt.Println("connected")
-
-	//c.startChann <- struct{}{}
-
-	fmt.Println("its about to start")
 
 	return nil
 }
 
-func (c *TCPConnector) Start() {
-	fmt.Println("waiting start2")
+func (c *TCPGameClientManager) Start() {
+	err := c.connect()
+	if err != nil {
+		panic(err)
+	}
 
-	// <-c.startChann
-
-	fmt.Println("waiting done")
+	go c.readMessages()
 
 	for {
-
 		select {
-		case msg := <-c.onMessageChann:
-			fmt.Printf("receive this message: %s \n", string(msg))
+		case msg := <-c.msgChan:
+			c.process(msg)
 		}
 	}
 }
 
-func (c *TCPConnector) Send(data []byte) error {
+func (c *TCPGameClientManager) Send(s state.Square) error {
+	statement := state.NewBoardStatement(c.state.myTeam, s)
+
+	data, err := c.encoder.Encode(statement)
+	if err != nil {
+		return err
+	}
+
 	n, err := c.conn.Write(data)
 	if err != nil {
 		return err
@@ -88,8 +97,24 @@ func (c *TCPConnector) Send(data []byte) error {
 	return nil
 }
 
-func (c *TCPConnector) readMessages() {
-	buf := make([]byte, 1024)
+func (c *TCPGameClientManager) process(msg []byte) error {
+	statement, err := c.encoder.Decode(msg)
+	if err != nil {
+		return err
+	}
+
+	if statement.State == state.TeamSelected {
+		c.state = NewClientGameState(statement.Team)
+	}
+
+	c.state.Change(statement)
+	c.renderer.Render(c.state)
+
+	return nil
+}
+
+func (c *TCPGameClientManager) readMessages() {
+	buf := make([]byte, 10)
 
 	for {
 		n, err := c.conn.Read(buf)
@@ -101,6 +126,6 @@ func (c *TCPConnector) readMessages() {
 		msg := make([]byte, n)
 		copy(msg, buf[:n])
 
-		c.onMessageChann <- msg
+		c.msgChan <- msg
 	}
 }

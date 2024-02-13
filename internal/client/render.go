@@ -1,5 +1,5 @@
 package client
 
 type Renderer interface {
-	Render(s ClientState)
+	Render(s *ClientGameState)
 }
