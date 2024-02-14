@@ -76,6 +76,7 @@ func (c *TCPGameClientManager) Start() {
 	}
 }
 
+// break it?
 func (c *TCPGameClientManager) Send(s state.Square) error {
 	statement := state.NewBoardStatement(c.state.myTeam, s)
 
@@ -97,6 +98,7 @@ func (c *TCPGameClientManager) Send(s state.Square) error {
 	return nil
 }
 
+// break it?
 func (c *TCPGameClientManager) process(msg []byte) error {
 	statement, err := c.encoder.Decode(msg)
 	if err != nil {
