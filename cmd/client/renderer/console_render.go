@@ -21,16 +21,24 @@ func (r *ConsoleRenderer) Render(s *client.ClientGameState) {
 		fmt.Printf("your team is >> %s\n", s.MyTeam())
 		printBoard(s)
 		if s.MyTeam() == state.OTeam {
-			fmt.Print("input square number (0...8) -> ")
+			fmt.Printf("%s is your turn, input square number (0...8) > ", s.MyTeam())
+		} else {
+			fmt.Print("waiting other player to play...")
 		}
 	case state.BoardChanged:
 		printBoard(s)
 		if s.IsMyTurn() {
-			fmt.Print("input square number (0...8) -> ")
+			fmt.Printf("%s is your turn, input square number (0...8) > ", s.MyTeam())
+		} else {
+			fmt.Print("waiting other player to play...")
 		}
 	case state.GameOvered:
 		printBoard(s)
-		fmt.Printf("GAME OVER the winner was %s\n", s.Winner())
+		if s.Winner() == state.NoTeam {
+			fmt.Print("GAME OVER it was a tie")
+		} else {
+			fmt.Printf("GAME OVER the winner was %s\n", s.Winner())
+		}
 	}
 }
 
