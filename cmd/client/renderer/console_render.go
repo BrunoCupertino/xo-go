@@ -23,14 +23,14 @@ func (r *ConsoleRenderer) Render(s *client.ClientGameState) {
 		if s.MyTeam() == state.OTeam {
 			fmt.Printf("%s is your turn, input square number (0...8) > ", s.MyTeam())
 		} else {
-			fmt.Print("waiting other player to play...")
+			fmt.Println("waiting other player to play...")
 		}
 	case state.BoardChanged:
 		printBoard(s)
 		if s.IsMyTurn() {
 			fmt.Printf("%s is your turn, input square number (0...8) > ", s.MyTeam())
 		} else {
-			fmt.Print("waiting other player to play...")
+			fmt.Println("waiting other player to play...")
 		}
 	case state.GameOvered:
 		printBoard(s)
