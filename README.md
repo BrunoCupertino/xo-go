@@ -22,7 +22,7 @@ to run tests or build just use the commands bellow:
 make build
 
 # for running tests
-make tests
+make test
 ```
 
 # how it works
